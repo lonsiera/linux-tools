@@ -10,15 +10,7 @@ CURRENT_CONTEXT=$(kubectl config current-context)
 
 # No arguments: list contexts with clusters
 if [ $# -eq 0 ]; then
-  echo "Available contexts and clusters from kubeconfig:"
-  kubectl config get-contexts -o name | while read -r ctx; do
-    cluster=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$ctx\")].context.cluster}")
-    prefix=" "
-    if [ "$ctx" == "$CURRENT_CONTEXT" ]; then
-      prefix="*"
-    fi
-    printf "%s %-30s %-30s\n" "$prefix" "$ctx" "$cluster"
-  done
+  kubectl config get-contexts
   exit 0
 fi
 
