@@ -1,3 +1,3 @@
 #!/bin/bash
 git pull
-sudo cp ks /usr/local/bin
+sudo cp k* /usr/local/bin
