@@ -5,12 +5,20 @@
 # Check if kubectl is installed
 command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is required but not installed. Aborting."; exit 1; }
 
+# Get current context and cluster
+CURRENT_CONTEXT=$(kubectl config current-context)
+CURRENT_CLUSTER=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$CURRENT_CONTEXT\")].context.cluster}")
+
 # No arguments: list clusters from current kubeconfig
 if [ $# -eq 0 ]; then
   echo "Available clusters from kubeconfig:"
   kubectl config get-contexts -o name | while read -r ctx; do
     cluster=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$ctx\")].context.cluster}")
-    echo "Cluster: $cluster  (Context: $ctx)"
+    prefix=" "
+    if [ "$cluster" == "$CURRENT_CLUSTER" ]; then
+      prefix="*"
+    fi
+    echo "$prefix $cluster"
   done
   exit 0
 fi
