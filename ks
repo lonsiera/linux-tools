@@ -24,5 +24,10 @@ if ! kubectl config get-contexts -o name | grep -qx "$CONTEXT_NAME"; then
 fi
 
 # Switch to the given context
-kubectl config use-context "$CONTEXT_NAME"
-#echo "Switched to context '$CONTEXT_NAME'"
+kubectl config use-context "$CONTEXT_NAME" >/dev/null 2>&1
+
+# Get current cluster name
+CLUSTER_NAME=$(kubectl config view --minify -o jsonpath='{.clusters[0].name}')
+
+# Print in yellow
+echo -e "\033[1;33m$CLUSTER_NAME\033[0m"
