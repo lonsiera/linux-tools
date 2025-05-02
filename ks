@@ -17,7 +17,7 @@ if [ $# -eq 0 ]; then
     if [ "$ctx" == "$CURRENT_CONTEXT" ]; then
       prefix="*"
     fi
-    printf "%s %-30s %-30s\n" "$prefix" "$cluster" "$ctx"
+    printf "%s %-30s %-30s\n" "$prefix" "$ctx" "$cluster"
   done
   exit 0
 fi
