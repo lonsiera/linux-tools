@@ -1,39 +1,36 @@
 #!/bin/bash
 #  ./ks               # Lists clusters and their contexts
-#  ./ks cluster-name  # Switches based on cluster name
+#  ./ks context-name  # Switches to specified context
 
 # Check if kubectl is installed
 command -v kubectl >/dev/null 2>&1 || { echo >&2 "kubectl is required but not installed. Aborting."; exit 1; }
 
-# Get current context and cluster
+# Get current context
 CURRENT_CONTEXT=$(kubectl config current-context)
-CURRENT_CLUSTER=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$CURRENT_CONTEXT\")].context.cluster}")
 
-# No arguments: list clusters from current kubeconfig
+# No arguments: list contexts with clusters
 if [ $# -eq 0 ]; then
-  echo "Available clusters from kubeconfig:"
+  echo "Available contexts and clusters from kubeconfig:"
   kubectl config get-contexts -o name | while read -r ctx; do
     cluster=$(kubectl config view -o jsonpath="{.contexts[?(@.name==\"$ctx\")].context.cluster}")
     prefix=" "
-    if [ "$cluster" == "$CURRENT_CLUSTER" ]; then
+    if [ "$ctx" == "$CURRENT_CONTEXT" ]; then
       prefix="*"
     fi
-    echo "$prefix $cluster"
+    echo "$prefix $ctx (cluster: $cluster)"
   done
   exit 0
 fi
 
-# Argument provided: treat it as a cluster name
-CLUSTER_NAME="$1"
+# Argument provided: treat it as a context name
+CONTEXT_NAME="$1"
 
-# Find context matching the given cluster
-MATCHING_CONTEXT=$(kubectl config view -o jsonpath="{.contexts[?(@.context.cluster==\"$CLUSTER_NAME\")].name}")
-
-if [ -z "$MATCHING_CONTEXT" ]; then
-  echo "No context found using cluster name '$CLUSTER_NAME'"
+# Check if the context exists
+if ! kubectl config get-contexts -o name | grep -qx "$CONTEXT_NAME"; then
+  echo "No context named '$CONTEXT_NAME' found in kubeconfig."
   exit 1
 fi
 
-# Switch to that context
-kubectl config use-context "$MATCHING_CONTEXT"
-echo "Switched to context '$MATCHING_CONTEXT' for cluster '$CLUSTER_NAME'"
+# Switch to the given context
+kubectl config use-context "$CONTEXT_NAME"
+echo "Switched to context '$CONTEXT_NAME'"
