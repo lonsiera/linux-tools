@@ -17,7 +17,7 @@ if [ $# -eq 0 ]; then
     if [ "$ctx" == "$CURRENT_CONTEXT" ]; then
       prefix="*"
     fi
-    echo "$prefix $ctx (cluster: $cluster)"
+    echo "$prefix $cluster $ctx "
   done
   exit 0
 fi
@@ -33,4 +33,4 @@ fi
 
 # Switch to the given context
 kubectl config use-context "$CONTEXT_NAME"
-echo "Switched to context '$CONTEXT_NAME'"
+#echo "Switched to context '$CONTEXT_NAME'"
