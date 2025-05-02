@@ -10,7 +10,7 @@ COMMAND="$1"
 
 # Loop through all contexts
 kubectl config get-contexts -o name | while read -r ctx; do
-  echo -e "\n\033[1;34m===\033[0m \033[1;34m[$ctx]\033[0m \033[1;34m===\033[0m"
+  echo -e "\n\033[1;34m===\033[0m \033[1;33m[$ctx]\033[0m \033[1;34m===\033[0m"
   kubectl config use-context "$ctx" >/dev/null 2>&1
 
   # Run the command and capture output
