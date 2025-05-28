@@ -1,16 +1,22 @@
 #!/bin/bash
-# Usage:
-#   ./ka "kubectl get ns"
-#   ./ka "kubectl get ns" "dev*"          # Only clusters starting with 'dev'
-#   ./ka "kubectl get ns" "*prod|*stage"  # Multiple patterns (|)
+# Usage examples:
+#   ./ka kubectl get ns
+#   ./ka kubectl get ns dev*
+#   ./ka kubectl get pods -A '*prod*|*dev*'
 
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 \"kubectl command\" [cluster-name-pattern]"
+  echo "Usage: $0 <kubectl command...> [cluster-name-pattern (optional)]"
   exit 1
 fi
 
-COMMAND="$1"
-PATTERN="$2"
+# Last argument is the filter if more than one arg
+if [ $# -gt 1 ]; then
+  FILTER="${@: -1}"          # Last argument
+  CMD_ARGS=("${@:1:$#-1}")    # All but last argument
+else
+  FILTER=""
+  CMD_ARGS=("$@")
+fi
 
 # Loop through all contexts
 kubectl config get-contexts -o name | while read -r ctx; do
@@ -19,10 +25,10 @@ kubectl config get-contexts -o name | while read -r ctx; do
   # Get current cluster name
   CLUSTER_NAME=$(kubectl config view --minify -o jsonpath='{.clusters[0].name}')
 
-  # If pattern is provided, check if cluster name matches any glob
-  if [ -n "$PATTERN" ]; then
+  # Filter clusters if a pattern is provided
+  if [ -n "$FILTER" ]; then
     MATCHED=false
-    IFS='|' read -ra patterns <<< "$PATTERN"
+    IFS='|' read -ra patterns <<< "$FILTER"
     for p in "${patterns[@]}"; do
       if [[ "$CLUSTER_NAME" == $p ]]; then
         MATCHED=true
@@ -32,9 +38,9 @@ kubectl config get-contexts -o name | while read -r ctx; do
     $MATCHED || continue
   fi
 
-  # Show header
+  # Show cluster header
   echo -e "\n\033[1;34m===\033[0m \033[1;33m[$CLUSTER_NAME]\033[0m \033[1;34m===\033[0m"
 
   # Run the command
-  eval "$COMMAND"
+  "${CMD_ARGS[@]}"
 done
