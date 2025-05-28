@@ -1,21 +1,21 @@
 #!/bin/bash
 # Usage:
-#   ./ka kubectl get ns
-#   ./ka kubectl get ns "dev.*"
-#   ./ka kubectl get pods -A "dev.*|stage.*"
+#   ./ka "kubectl get ns"
+#   ./ka "kubectl get ns" "dev.*"
+#   ./ka "kubectl get pods -A" "dev.*|prod.*"
 
 if [ $# -lt 1 ]; then
-  echo "Usage: $0 <kubectl command...> [cluster-pattern (optional)]"
+  echo "Usage: $0 \"<kubectl command>\" [cluster-pattern (optional)]"
   exit 1
 fi
 
-# Extract pattern and command
+# If more than one arg, last is pattern, rest is command
 if [ $# -gt 1 ]; then
-  PATTERN="${@: -1}"           # Last argument = pattern
-  CMD_ARGS=("${@:1:$#-1}")     # All but last = kubectl command
+  PATTERN="${@: -1}"           # Last arg
+  CMD="${*:1:$#-1}"            # All except last
 else
   PATTERN=""
-  CMD_ARGS=("$@")
+  CMD="$1"
 fi
 
 # Loop through contexts
@@ -25,14 +25,14 @@ kubectl config get-contexts -o name | while read -r ctx; do
   # Get current cluster name
   CLUSTER_NAME=$(kubectl config view --minify -o jsonpath='{.clusters[0].name}')
 
-  # Filter using grep if pattern is provided
+  # Filter by pattern
   if [ -n "$PATTERN" ] && ! echo "$CLUSTER_NAME" | grep -Eq "$PATTERN"; then
     continue
   fi
 
-  # Output header
+  # Print header
   echo -e "\n\033[1;34m===\033[0m \033[1;33m[$CLUSTER_NAME]\033[0m \033[1;34m===\033[0m"
 
   # Run the command
-  "${CMD_ARGS[@]}"
+  eval "$CMD"
 done
