@@ -18,17 +18,20 @@ else
   CMD="$1"
 fi
 
+mapfile -t contexts < <(kubectl config get-contexts -o name | grep "$PATTERN")
+
 # Loop through contexts
-kubectl config get-contexts -o name | while read -r ctx; do
+# kubectl config get-contexts -o name | while read -r ctx; do
+for ctx in "${contexts[@]}"; do
   kubectl config use-context "$ctx" >/dev/null 2>&1
 
   # Get current cluster name
   CLUSTER_NAME=$(kubectl config view --minify -o jsonpath='{.clusters[0].name}')
 
   # Filter by pattern
-  if [ -n "$PATTERN" ] && ! echo "$CLUSTER_NAME" | grep -Eq "$PATTERN"; then
-    continue
-  fi
+  #if [ -n "$PATTERN" ] && ! echo "$CLUSTER_NAME" | grep -Eq "$PATTERN"; then
+  #  continue
+  #fi
 
   # Print header
   echo -e "\n\033[1;34m===\033[0m \033[1;33m[$CLUSTER_NAME]\033[0m \033[1;34m===\033[0m"
